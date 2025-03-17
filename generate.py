@@ -90,8 +90,11 @@ class CrosswordCreator():
         Enforce node and arc consistency, and then solve the CSP.
         """
         self.enforce_node_consistency()
-        self.ac3()
-        return self.backtrack(dict())
+        # self.ac3()
+        # return self.backtrack(dict())
+
+
+# TODO --------------------
 
     def enforce_node_consistency(self):
         """
@@ -99,7 +102,11 @@ class CrosswordCreator():
         (Remove any values that are inconsistent with a variable's unary
          constraints; in this case, the length of the word.)
         """
-        raise NotImplementedError
+        
+        for var in self.domains:
+                self.domains[var] = {word for word in self.domains[var] if len(word) == var.length}     
+        
+        print(self.domains)
 
     def revise(self, x, y):
         """
@@ -184,14 +191,13 @@ def main():
     creator = CrosswordCreator(crossword)
     assignment = creator.solve()
 
-    # Print result
-    if assignment is None:
-        print("No solution.")
-    else:
-        creator.print(assignment)
-        if output:
-            creator.save(assignment, output)
-
+    # # Print result
+    # if assignment is None:
+    #     print("No solution.")
+    # else:
+    #     creator.print(assignment)
+    #     if output:
+    #         creator.save(assignment, output)
 
 if __name__ == "__main__":
     main()
