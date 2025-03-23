@@ -1,8 +1,8 @@
 import sys
 import pandas as pd
+import random
 
 from crossword import *
-
 
 class CrosswordCreator():
 
@@ -287,8 +287,18 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
+        # print("ASSIGNMENT: ", assignment)
 
-        # raise NotImplementedError
+        # Create a set of vars that are still unassigned
+        unassigned_vars = {var for var in self.domains if var not in assignment}
+        # print("UNASSIGNED VARS: ", unassigned_vars)
+        
+        # Return (random var for now)
+        random_variable = random.choice(list(unassigned_vars))
+        # print(random_variable)
+        return random_variable
+
+
 
     def backtrack(self, assignment):
         """
@@ -306,15 +316,15 @@ class CrosswordCreator():
                 if len(self.domains[var]) == 1:
                     stringified = str(next(iter(self.domains[var])))
                     assignment[var] = stringified
-                else:
-                    assignment[var] = None
+                # else:
+                #     assignment[var] = None
 
         # self.assignment_complete(assignment)
         # self.consistent(assignment)
-        vars = [var for var in self.domains]
-        self.order_domain_values(vars[0], assignment)
+        # vars = [var for var in self.domains]
+        # self.order_domain_values(vars[0], assignment)
 
-        # self.select_unassigned_variable(assignment)
+        self.select_unassigned_variable(assignment)
 
         ## PSEUDOCODE ##
         # if assignment complete:
