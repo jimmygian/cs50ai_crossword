@@ -118,10 +118,8 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        # print("\n\nYOU ARE IN REVISE()\n")
-        # print(x, self.domains[x])
-        # print(y, self.domains[y])
-        # print()
+        # print("\n\nYOU ARE IN REVISE()\n", x, self.domains[x], "\n", y, self.domains[y], "\n")
+        # print("BEFORE", self.domains[x])
         
         # Check if overlap happens (returns: None OR set of letter indexes for (x, y))
         overlap = self.crossword.overlaps[(x, y)]
@@ -131,23 +129,19 @@ class CrosswordCreator():
             print(f"No overlap for '{x}' and '{y}'.")
             return False
         
+        # Get letter indexes
         x_index, y_index = overlap
-        # print(x_index, y_index)
         
-        x_values_copy = self.domains[x].copy()
-        for x_value in x_values_copy:
-            match = False
-            for y_value in self.domains[y]:
-                if x_value[x_index] == y_value[y_index]:
-                    print(x_value, y_value) 
-                    match = True
-            
-            if not match:
-                self.domains[x].remove(x_value)
+        # Create new set with valid x_values
+        valid_x_values = {
+            x_value for x_value in self.domains[x]
+            if any(x_value[x_index] == y_value[y_index] for y_value in self.domains[y])
+        }
+
+        # Update self.domains[x] with only valid values
+        self.domains[x] = valid_x_values
                     
-        # print(x_values_copy)
-        # print(self.domains[x])
-        
+        # print("AFTER", self.domains[x])
         return True
         
 
