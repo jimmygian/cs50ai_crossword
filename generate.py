@@ -299,7 +299,6 @@ class CrosswordCreator():
         return random_variable
 
 
-
     def backtrack(self, assignment):
         """
         Using Backtracking Search, take as input a partial assignment for the
@@ -316,33 +315,33 @@ class CrosswordCreator():
                 if len(self.domains[var]) == 1:
                     stringified = str(next(iter(self.domains[var])))
                     assignment[var] = stringified
-                # else:
-                #     assignment[var] = None
 
-        # self.assignment_complete(assignment)
-        # self.consistent(assignment)
-        # vars = [var for var in self.domains]
-        # self.order_domain_values(vars[0], assignment)
-
-        self.select_unassigned_variable(assignment)
-
-        ## PSEUDOCODE ##
-        # if assignment complete:
-        #     return assignment
+        # if assignment complete: return assignment
+        if self.assignment_complete(assignment):
+            return assignment
+        
         # var = Select-Unassigned-Var(assignment, csp)
-        # for value in Domain-Values(var, assignment, csp):
-        #     if value consistent with assignment:
-        #         add {var = value} to assignment
-        #         inferences = Inference(assignment, csp)
-        #         if inferences ≠ failure:
-        #             add inferences to assignment
-        #         result = Backtrack(assignment, csp)
-        #         if result ≠ failure:
-        #             return result
-        #         remove {var = value} and inferences from assignment
-        # return failure
+        var = self.select_unassigned_variable(assignment)
 
-        return False
+        # for value in Domain-Values(var, assignment, csp):
+        for value in self.order_domain_values(var, assignment):
+            # if value is consistent with assignment:
+            if self.consistent(assignment):
+                # add {var = value} to assignment
+                assignment[var] = value
+                # inferences = Inference(assignment, csp)
+                # if inferences ≠ failure:
+                    # add inferences to assignment
+                # result = Backtrack(assignment, csp)
+                result = self.backtrack(assignment)
+                # if result ≠ failure:
+                if result is not None:
+                    # return result
+                    return result
+                # remove {var = value} and inferences from assignment
+                assignment.pop(var)
+        # return failure
+        return None
         # raise NotImplementedError
 
 
