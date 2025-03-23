@@ -108,7 +108,6 @@ class CrosswordCreator():
                 self.domains[var] = {word for word in self.domains[var] if len(word) == var.length}     
         
 
-
     def revise(self, x, y):
         """
         Make variable `x` arc consistent with variable `y`.
@@ -118,32 +117,23 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        # print("\n\nYOU ARE IN REVISE()\n", x, self.domains[x], "\n", y, self.domains[y], "\n")
-        # print("BEFORE", self.domains[x])
-        
-        # Check if overlap happens (returns: None OR set of letter indexes for (x, y))
-        overlap = self.crossword.overlaps[(x, y)]
-        
-        # Return False if no overlap
+        overlap = self.crossword.overlaps.get((x, y))
         if not overlap:
-            print(f"No overlap for '{x}' and '{y}'.")
+            # No overlap means nothing to revise.
             return False
-        
-        # Get letter indexes
+
         x_index, y_index = overlap
+        original_domain = self.domains[x].copy()  # Keep a copy for comparison.
         
-        # Create new set with valid x_values
-        valid_x_values = {
+        # Only keep those x_values that have a corresponding y_value.
+        self.domains[x] = {
             x_value for x_value in self.domains[x]
             if any(x_value[x_index] == y_value[y_index] for y_value in self.domains[y])
         }
-
-        # Update self.domains[x] with only valid values
-        self.domains[x] = valid_x_values
-                    
-        # print("AFTER", self.domains[x])
-        return True
         
+        # Return True only if the domain was revised.
+        return original_domain != self.domains[x]
+            
 
     def ac3(self, arcs=None):
         """
@@ -154,15 +144,53 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        df = pd.DataFrame.from_dict(self.domains, orient='index')
-        print(df, "\n")
         
-        keys_list = list(self.domains.keys())
+        # Initialize queue with all arcs if no initial arcs provided
+        if arcs is None:
+            arcs = [
+                (x, y) for x in self.domains 
+                    for y in self.domains
+                        if x != y 
+                        and (self.crossword.overlaps.get((x, y)) is not None or self.crossword.overlaps.get((y, x)) is not None)
+            ]
+       
+        # for arc in arcs:
+        #     x, y = arc
+        #     if (self.crossword.overlaps.get((x, y)) is None or self.crossword.overlaps.get((y, x)) is None):
+        #         arcs.remove(arc)
+        
+        print(arcs)
+        while arcs:
+            #dequeue elemenet (FIFO) and get x and y vars
+            x, y = arcs.pop(0)
+            
+            # If changes were made to x, proceed
+            if self.revise(x, y):
+                
+                if len(self.domains[x]) == 0:
+                    # No possible solution exists
+                    return False
+                
+                # Enqueue all neibhgours of x - x changed so all its neighbours need to be rechecked
+                neighbours_x = self.crossword.neighbors(x)  
+                for z in neighbours_x:
+                    if z != y:
+                        arcs.append((z, x))                        
+        
+        domains_list = [(str(variable), values) for variable, values in self.domains.items()]
+        df = pd.DataFrame(domains_list, columns=["VAR", "VALUES"])
+        print(df)
+        return True
+                        
+            
+            
+            
 
-        self.revise(keys_list[0], keys_list[1])
+
         
         
         # raise NotImplementedError
+
 
     def assignment_complete(self, assignment):
         """

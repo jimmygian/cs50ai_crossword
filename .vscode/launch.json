@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Generate.py with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/generate.py",
+            "console": "integratedTerminal",
+            "args": ["./data/structure0.txt", "./data/words0.txt"]
+        }
+    ]
+}
