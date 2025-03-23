@@ -1,4 +1,5 @@
 import sys
+import pandas as pd
 
 from crossword import *
 
@@ -90,7 +91,7 @@ class CrosswordCreator():
         Enforce node and arc consistency, and then solve the CSP.
         """
         self.enforce_node_consistency()
-        # self.ac3()
+        self.ac3()
         # return self.backtrack(dict())
 
 
@@ -106,7 +107,7 @@ class CrosswordCreator():
         for var in self.domains:
                 self.domains[var] = {word for word in self.domains[var] if len(word) == var.length}     
         
-        print(self.domains)
+
 
     def revise(self, x, y):
         """
@@ -117,7 +118,38 @@ class CrosswordCreator():
         Return True if a revision was made to the domain of `x`; return
         False if no revision was made.
         """
-        raise NotImplementedError
+        # print("\n\nYOU ARE IN REVISE()\n")
+        # print(x, self.domains[x])
+        # print(y, self.domains[y])
+        # print()
+        
+        # Check if overlap happens (returns: None OR set of letter indexes for (x, y))
+        overlap = self.crossword.overlaps[(x, y)]
+        
+        # Return False if no overlap
+        if not overlap:
+            print(f"No overlap for '{x}' and '{y}'.")
+            return False
+        
+        x_index, y_index = overlap
+        # print(x_index, y_index)
+        
+        x_values_copy = self.domains[x].copy()
+        for x_value in x_values_copy:
+            match = False
+            for y_value in self.domains[y]:
+                if x_value[x_index] == y_value[y_index]:
+                    print(x_value, y_value) 
+                    match = True
+            
+            if not match:
+                self.domains[x].remove(x_value)
+                    
+        # print(x_values_copy)
+        # print(self.domains[x])
+        
+        return True
+        
 
     def ac3(self, arcs=None):
         """
@@ -128,7 +160,15 @@ class CrosswordCreator():
         Return True if arc consistency is enforced and no domains are empty;
         return False if one or more domains end up empty.
         """
-        raise NotImplementedError
+        df = pd.DataFrame.from_dict(self.domains, orient='index')
+        print(df, "\n")
+        
+        keys_list = list(self.domains.keys())
+
+        self.revise(keys_list[0], keys_list[1])
+        
+        
+        # raise NotImplementedError
 
     def assignment_complete(self, assignment):
         """
