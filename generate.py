@@ -255,28 +255,25 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-
+        print(assignment)
         values_x = [v for v in self.domains[var]]
 
         def rule_out_counter(value):
-            # Initialise counter
             rule_out_count = 0
 
-            # Iterate through all neibhouring variables of var
-            neighbouring_vars = self.crossword.neighbors(var)
-            for var_y in neighbouring_vars:
-                values_y = [v for v in self.domains[var_y]]
-                
-                # Check if var crosses with var_y
-                overlapping_indexes = self.crossword.overlaps.get((var, var_y))
-                if overlapping_indexes:
-                    index_x, index_y = overlapping_indexes
+            # Only consider unassigned neighboring variables
+            unassigned_neighbors = {var_y for var_y in self.crossword.neighbors(var) if var_y not in assignment}
 
-                    for value_y in values_y:
-                        if value[index_x] != value_y[index_y]:
-                            rule_out_count+=1 # Ruling out of word happened, update counter
+            for var_y in unassigned_neighbors:
+                values_y = self.domains[var_y]
 
-            # print(f"The count for value {value} is {rule_out_count}")
+                # Check if var overlaps with var_y
+                overlap = self.crossword.overlaps.get((var, var_y))
+                if overlap:
+                    index_x, index_y = overlap
+
+                    # Count how many words in var_y's domain would be ruled out
+                    rule_out_count += sum(1 for value_y in values_y if value[index_x] != value_y[index_y])
             return rule_out_count
         
         return sorted(values_x, key=lambda x: rule_out_counter(x))
@@ -290,7 +287,8 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        raise NotImplementedError
+
+        # raise NotImplementedError
 
     def backtrack(self, assignment):
         """
@@ -315,6 +313,8 @@ class CrosswordCreator():
         # self.consistent(assignment)
         vars = [var for var in self.domains]
         self.order_domain_values(vars[0], assignment)
+
+        # self.select_unassigned_variable(assignment)
 
         ## PSEUDOCODE ##
         # if assignment complete:
