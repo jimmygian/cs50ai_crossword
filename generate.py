@@ -299,6 +299,22 @@ class CrosswordCreator():
         return random_variable
 
 
+    def inference(self, assignment):
+        """
+        Maintains arc consistency every time we make a new assignment.
+        Run AC-3 on all arcs from the newly assigned variable(s) to unassigned neighbors.
+        """
+        # Collect arcs from newly assigned variables to their unassigned neighbors
+        arcs = []
+        for var in assignment:
+            for neighbor in self.crossword.neighbors(var):
+                if neighbor not in assignment:
+                    # Only add the arc if there is an overlap
+                    if self.crossword.overlaps.get((var, neighbor)) is not None:
+                        arcs.append((var, neighbor))
+        return self.ac3(arcs)
+
+
     def backtrack(self, assignment):
         """
         Using Backtracking Search, take as input a partial assignment for the
@@ -316,33 +332,28 @@ class CrosswordCreator():
                     stringified = str(next(iter(self.domains[var])))
                     assignment[var] = stringified
 
-        # if assignment complete: return assignment
+        # Base Case: if assignment complete (all vars have 1 value assigned), return final assignment
         if self.assignment_complete(assignment):
             return assignment
-        
-        # var = Select-Unassigned-Var(assignment, csp)
-        var = self.select_unassigned_variable(assignment)
 
-        # for value in Domain-Values(var, assignment, csp):
+        var = self.select_unassigned_variable(assignment)
+        
         for value in self.order_domain_values(var, assignment):
-            # if value is consistent with assignment:
+            # Tentatively add the value
+            assignment[var] = value
+            
+            # Check if the assignment is consistent after adding the new value
             if self.consistent(assignment):
-                # add {var = value} to assignment
-                assignment[var] = value
-                # inferences = Inference(assignment, csp)
-                # if inferences ≠ failure:
-                    # add inferences to assignment
-                # result = Backtrack(assignment, csp)
-                result = self.backtrack(assignment)
-                # if result ≠ failure:
-                if result is not None:
-                    # return result
-                    return result
-                # remove {var = value} and inferences from assignment
-                assignment.pop(var)
-        # return failure
+                # Run inference; if inference fails (e.g., returns False), we need to backtrack.
+                if self.inference(assignment):
+                    result = self.backtrack(assignment)
+                    if result is not None:
+                        return result
+            
+            # If we reached here, either the assignment was inconsistent or inference failed.
+            assignment.pop(var)
+        
         return None
-        # raise NotImplementedError
 
 
 def main():
