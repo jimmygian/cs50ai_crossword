@@ -92,7 +92,7 @@ class CrosswordCreator():
         """
         self.enforce_node_consistency()
         self.ac3()
-        # return self.backtrack(dict())
+        return self.backtrack(dict())
 
 
 # TODO --------------------
@@ -197,7 +197,21 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        raise NotImplementedError
+        print(f"\nIN ASSIGNMENT_COMPLETE: \n")
+
+        if assignment.keys() != self.domains.keys():
+            print("Dict's keys are not the same as total number of vars")
+            return False
+        else: 
+            print("Assignment has same number of keys. \n")
+            print(assignment, "\n")
+            for var in assignment:
+                print("VALUE: ", var, assignment[var])
+                if not assignment[var]:
+                    print("Value is not valid")
+                    return False
+            return True
+
 
     def consistent(self, assignment):
         """
@@ -234,7 +248,36 @@ class CrosswordCreator():
 
         If no assignment is possible, return None.
         """
-        raise NotImplementedError
+
+        # Initialise assignment
+        if not assignment:
+            for var in self.domains:
+                if len(self.domains[var]) == 1:
+                    stringified = str(next(iter(self.domains[var])))
+                    assignment[var] = stringified
+                else:
+                    assignment[var] = None
+
+        self.assignment_complete(assignment)
+        
+        ## PSEUDOCODE ##
+        # if assignment complete:
+        #     return assignment
+        # var = Select-Unassigned-Var(assignment, csp)
+        # for value in Domain-Values(var, assignment, csp):
+        #     if value consistent with assignment:
+        #         add {var = value} to assignment
+        #         inferences = Inference(assignment, csp)
+        #         if inferences ≠ failure:
+        #             add inferences to assignment
+        #         result = Backtrack(assignment, csp)
+        #         if result ≠ failure:
+        #             return result
+        #         remove {var = value} and inferences from assignment
+        # return failure
+
+        return False
+        # raise NotImplementedError
 
 
 def main():
