@@ -197,18 +197,18 @@ class CrosswordCreator():
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        print(f"\nIN ASSIGNMENT_COMPLETE: \n")
+        # print(f"\nIN ASSIGNMENT_COMPLETE: \n")
 
         if assignment.keys() != self.domains.keys():
-            print("Dict's keys are not the same as total number of vars")
+            # print("Dict's keys are not the same as total number of vars")
             return False
         else: 
-            print("Assignment has same number of keys. \n")
-            print(assignment, "\n")
+            # print("Assignment has same number of keys. \n")
+            # print(assignment, "\n")
             for var in assignment:
                 print("VALUE: ", var, assignment[var])
                 if not assignment[var]:
-                    print("Value is not valid")
+                    # print("Value is not valid")
                     return False
             return True
 
@@ -218,7 +218,35 @@ class CrosswordCreator():
         Return True if `assignment` is consistent (i.e., words fit in crossword
         puzzle without conflicting characters); return False otherwise.
         """
-        raise NotImplementedError
+        # # NO NEED TO CHECK IF ALL VALUES OF THE DOMAIN ARE PRESENT IN "assignment" here.
+        # this is being done in 'self.assignment_complete(assignment)':=
+
+        # CHECK IF VALUES ARE UNIQUE
+        values = assignment.values()
+        is_unique = len(values) == len(set(values)) and not any(value == None for value in values)
+        if not is_unique:
+            return False
+
+        # CHECK IF LENGTH OF VALUES CORRESPOND TO THEIR VAR'S ASSIGNED LENGTH
+        for var in assignment:
+            if var.length != len(assignment[var]):
+                return False
+        
+
+        # CHECK IF ALL BINARY CONSTRAINTS ARE MET
+        for x in assignment:
+            for y in assignment:
+                if x != y:
+                    overlap = self.crossword.overlaps.get((x, y))
+                    # Ensures overlap exists
+                    if overlap is not None:  
+                        index_x, index_y = overlap
+                        if assignment[x][index_x] != assignment[y][index_y]:  
+                            return False  # Mismatch in overlapping letters
+
+        # If all checks are PASS, return True
+        return True
+
 
     def order_domain_values(self, var, assignment):
         """
@@ -258,7 +286,8 @@ class CrosswordCreator():
                 else:
                     assignment[var] = None
 
-        self.assignment_complete(assignment)
+        # self.assignment_complete(assignment)
+        self.consistent(assignment)
         
         ## PSEUDOCODE ##
         # if assignment complete:
