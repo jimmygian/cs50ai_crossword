@@ -4,6 +4,7 @@ import random
 
 from crossword import *
 
+
 class CrosswordCreator():
 
     def __init__(self, crossword):
@@ -97,6 +98,7 @@ class CrosswordCreator():
 
 # TODO --------------------
 
+
     def enforce_node_consistency(self):
         """
         Update `self.domains` such that each variable is node-consistent.
@@ -105,9 +107,8 @@ class CrosswordCreator():
         """
         
         for var in self.domains:
-                self.domains[var] = {word for word in self.domains[var] if len(word) == var.length}     
+            self.domains[var] = {word for word in self.domains[var] if len(word) == var.length}     
         
-
     def revise(self, x, y):
         """
         Make variable `x` arc consistent with variable `y`.
@@ -134,7 +135,6 @@ class CrosswordCreator():
         # Return True only if the domain was revised.
         return original_domain != self.domains[x]
             
-
     def ac3(self, arcs=None):
         """
         Update `self.domains` such that each variable is arc consistent.
@@ -149,19 +149,13 @@ class CrosswordCreator():
         if arcs is None:
             arcs = [
                 (x, y) for x in self.domains 
-                    for y in self.domains
-                        if x != y 
-                        and (self.crossword.overlaps.get((x, y)) is not None or self.crossword.overlaps.get((y, x)) is not None)
+                for y in self.domains
+                if x != y 
+                and (self.crossword.overlaps.get((x, y)) is not None or self.crossword.overlaps.get((y, x)) is not None)
             ]
        
-        # for arc in arcs:
-        #     x, y = arc
-        #     if (self.crossword.overlaps.get((x, y)) is None or self.crossword.overlaps.get((y, x)) is None):
-        #         arcs.remove(arc)
-        
-        print(arcs)
         while arcs:
-            #dequeue elemenet (FIFO) and get x and y vars
+            # Dequeue elemenet (FIFO) and get x and y vars
             x, y = arcs.pop(0)
             
             # If changes were made to x, proceed
@@ -175,43 +169,22 @@ class CrosswordCreator():
                 neighbours_x = self.crossword.neighbors(x)  
                 for z in neighbours_x:
                     if z != y:
-                        arcs.append((z, x))                        
-        
-        domains_list = [(str(variable), values) for variable, values in self.domains.items()]
-        df = pd.DataFrame(domains_list, columns=["VAR", "VALUES"])
-        print(df)
+                        arcs.append((z, x))                                
         return True
-                        
-            
-            
-            
-
-
-        
-        
-        # raise NotImplementedError
-
 
     def assignment_complete(self, assignment):
         """
         Return True if `assignment` is complete (i.e., assigns a value to each
         crossword variable); return False otherwise.
         """
-        # print(f"\nIN ASSIGNMENT_COMPLETE: \n")
 
         if assignment.keys() != self.domains.keys():
-            # print("Dict's keys are not the same as total number of vars")
             return False
         else: 
-            # print("Assignment has same number of keys. \n")
-            # print(assignment, "\n")
             for var in assignment:
-                print("VALUE: ", var, assignment[var])
                 if not assignment[var]:
-                    # print("Value is not valid")
                     return False
             return True
-
 
     def consistent(self, assignment):
         """
@@ -221,19 +194,18 @@ class CrosswordCreator():
         # # NO NEED TO CHECK IF ALL VALUES OF THE DOMAIN ARE PRESENT IN "assignment" here.
         # this is being done in 'self.assignment_complete(assignment)':=
 
-        # CHECK IF VALUES ARE UNIQUE
+        # Check if values are unique
         values = assignment.values()
         is_unique = len(values) == len(set(values)) and not any(value == None for value in values)
         if not is_unique:
             return False
 
-        # CHECK IF LENGTH OF VALUES CORRESPOND TO THEIR VAR'S ASSIGNED LENGTH
+        # Check if values correspond to their var's assigned length 
         for var in assignment:
             if var.length != len(assignment[var]):
                 return False
-        
 
-        # CHECK IF ALL BINARY CONSTRAINTS ARE MET
+        # Check if all binary constraints are met
         for x in assignment:
             for y in assignment:
                 if x != y:
@@ -247,7 +219,6 @@ class CrosswordCreator():
         # If all checks are PASS, return True
         return True
 
-
     def order_domain_values(self, var, assignment):
         """
         Return a list of values in the domain of `var`, in order by
@@ -255,14 +226,15 @@ class CrosswordCreator():
         The first value in the list, for example, should be the one
         that rules out the fewest values among the neighbors of `var`.
         """
-        print(assignment)
+        
         values_x = [v for v in self.domains[var]]
 
         def rule_out_counter(value):
             rule_out_count = 0
 
             # Only consider unassigned neighboring variables
-            unassigned_neighbors = {var_y for var_y in self.crossword.neighbors(var) if var_y not in assignment}
+            unassigned_neighbors = {var_y for var_y in self.crossword.neighbors(
+                var) if var_y not in assignment}
 
             for var_y in unassigned_neighbors:
                 values_y = self.domains[var_y]
@@ -273,11 +245,11 @@ class CrosswordCreator():
                     index_x, index_y = overlap
 
                     # Count how many words in var_y's domain would be ruled out
-                    rule_out_count += sum(1 for value_y in values_y if value[index_x] != value_y[index_y])
+                    rule_out_count += sum(
+                        1 for value_y in values_y if value[index_x] != value_y[index_y])
             return rule_out_count
         
         return sorted(values_x, key=lambda x: rule_out_counter(x))
-
 
     def select_unassigned_variable(self, assignment):
         """
@@ -287,17 +259,19 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        # print("ASSIGNMENT: ", assignment)
-
         # Create a set of vars that are still unassigned
         unassigned_vars = {var for var in self.domains if var not in assignment}
-        # print("UNASSIGNED VARS: ", unassigned_vars)
-        
-        # Return (random var for now)
-        random_variable = random.choice(list(unassigned_vars))
-        # print(random_variable)
-        return random_variable
 
+        unassigned_vars_list = list(unassigned_vars)
+        
+        # Sort list starting from vars with less domains and higher connections to other nodes
+        unassigned_vars_sorted_list = sorted(
+            unassigned_vars_list, 
+            key=lambda x: (len(self.domains[x]), -len(self.crossword.neighbors(x)))
+        )
+        
+        # Return first element on the list
+        return unassigned_vars_sorted_list[0]
 
     def inference(self, assignment):
         """
@@ -313,7 +287,6 @@ class CrosswordCreator():
                     if self.crossword.overlaps.get((var, neighbor)) is not None:
                         arcs.append((var, neighbor))
         return self.ac3(arcs)
-
 
     def backtrack(self, assignment):
         """
@@ -372,13 +345,14 @@ def main():
     creator = CrosswordCreator(crossword)
     assignment = creator.solve()
 
-    # # Print result
-    # if assignment is None:
-    #     print("No solution.")
-    # else:
-    #     creator.print(assignment)
-    #     if output:
-    #         creator.save(assignment, output)
+    # Print result
+    if assignment is None:
+        print("No solution.")
+    else:
+        creator.print(assignment)
+        if output:
+            creator.save(assignment, output)
+
 
 if __name__ == "__main__":
     main()
