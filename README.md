@@ -58,11 +58,6 @@ In this project, the goal is to generate a crossword puzzle by solving a constra
   - `backtrack()`: Uses backtracking search to find a valid assignment.
   - `select_unassigned_variable()`, `order_domain_values()`, and `inference()`: Apply heuristics for efficient search.
 
-- **Handled Crossword Grid Representation:**
-  - Converts the solution into a 2D letter grid.
-  - Prints the solution in the terminal.
-  - Saves the result as an image file.
-
 - **Ensured Code Efficiency:**
   - Optimized the backtracking search with heuristics.
   - Applied forward checking to reduce search space.
